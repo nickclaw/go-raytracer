@@ -43,9 +43,10 @@ func (s *Scene) Build(file string) bool {
     for scanner.Scan() {
         tokens := strings.Split(scanner.Text(), " ")
         if tokens[0] == "v" {
-            x, _ := strconv.ParseFloat(tokens[1], 64)
-            y, _ := strconv.ParseFloat(tokens[2], 64)
-            z, _ := strconv.ParseFloat(tokens[3], 64)
+            x, _ := strconv.ParseFloat(tokens[3], 64)
+            y, _ := strconv.ParseFloat(tokens[1], 64)
+            z, _ := strconv.ParseFloat(tokens[2], 64)
+            z *= -1.0
             fmt.Println(x,y,z)
             s.Vertices = append(s.Vertices, Vector{x,y,z})
         } else if tokens[0] == "f" {
@@ -87,7 +88,7 @@ func (s Scene) Render(image *image.Gray16, scale int) bool {
 
         // was intersection? render!
         if minDist < math.MaxFloat64 {
-            col = 65535
+            col = 65535 - uint16(65535 * minDist / 2)
             image.SetGray16(ray.X, ray.Y, color.Gray16{col})
         }
 
