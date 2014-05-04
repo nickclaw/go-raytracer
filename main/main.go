@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
-    face := raytrace.Face{raytrace.Point{0,0,0}, raytrace.Point{1,1,1}, raytrace.Point{2,2,2}}
-    fmt.Println(face)
+    scene := raytrace.Scene{}
+    scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/scene.obj")
+    fmt.Println(scene)
 }
