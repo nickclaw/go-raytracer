@@ -6,52 +6,35 @@ func (r Face) GetNormal() Vector {
     return BuildVector(r[1], r[0]).Cross(BuildVector(r[2], r[0])).Norm()
 }
 
+// based off http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 func (r Face) GetIntersection(l Ray) (Vector, float64, bool) {
+    e1 := r[1].Sub(r[0])
+    e2 := r[2].Sub(r[0])
 
-    N := r.GetNormal()
+    pVec := l.Dir.Cross(e2)
 
-    /** Find P **/
+    det := e1.Dot(pVec)
 
-    // check if ray and plane are parralel
-    angle := N.Dot(l.Dir)
-    if (angle == 0) {
+    if det < 0 {
         return Vector{}, 0.0, true
     }
 
-    // get d?
-    d := N.Dot(r[0])
-    t := -(N.Dot(l.Loc) + d) / angle
+    tVec := l.Loc.Sub(r[0])
+    qVec := tVec.Cross(e1)
 
-    // check if triangle is behind ray
-    if (t < 0) {
+    u := tVec.Dot(pVec)
+    v := l.Dir.Dot(qVec)
+    t := e2.Dot(qVec)
+
+    if (u < 0.0 || u > det || v < 0.0 || u + v > det) {
         return Vector{}, 0.0, true
     }
 
-    // ray hits triangle plane here
-    p := l.Dir.Mult(t).Add(l.Loc)
-
-    // doe point land within triangle?
-    e0 := r[1].Sub(r[0])
-    vp0 := p.Sub(r[0])
-    if (N.Dot(e0.Cross(vp0)) < 0) {
-        return Vector{}, 0.0, true
-    }
-
-    e1 := r[2].Sub(r[1])
-    vp1 := p.Sub(r[1])
-    if (N.Dot(e1.Cross(vp1)) < 0) {
-        return Vector{}, 0.0, true
-    }
-
-    e2 := r[0].Sub(r[2])
-    vp2 := p.Sub(r[2])
-    if (N.Dot(e2.Cross(vp2)) < 0) {
-        return Vector{}, 0.0, true
-    }
-
-    // yay
-    return p, t, false
-
+    return Vector{
+        u / det,
+        v / det,
+        t / det,
+    }, 1.0, false
 }
 
 func BuildVector(a,b Vector) Vector {
