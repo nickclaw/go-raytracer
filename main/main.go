@@ -2,18 +2,30 @@ package main
 
 import (
     "fmt"
+    "os"
     "github.com/nickclaw/raytrace"
+    "image"
+    "image/jpeg"
 )
 
 func main() {
+    width, height, scale := 3, 3, 100
+    image := image.NewGray16(image.Rect(0,0,width*scale, height*scale))
+
     scene := raytrace.Scene{
-        Lights: []raytrace.Point{raytrace.Point{5, 5, 2}},
         Camera: raytrace.OrthoCamera{
-            Loc: raytrace.Point{5, 0, 0},
-            Dir: raytrace.Vector{-1, 0, 0},
+            Loc: raytrace.Vector{2,0,0},
+            Dir: raytrace.Vector{-1,0,0},
+            Width: width,
+            Height: height,
         },
     }
+    scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/icosphere.obj")
+    scene.Render(image, scale)
 
-    scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/scene.obj")
-    fmt.Println(scene)
+    output, _ := os.Create("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/output.jpg")
+    defer output.Close()
+
+    jpeg.Encode(output, image, nil)
+    fmt.Println("Done.")
 }

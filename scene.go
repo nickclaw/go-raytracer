@@ -6,15 +6,18 @@ import (
     "strconv"
     "os"
     "bufio"
+    "image"
+    "image/color"
+    "math"
 )
 
 /**
  *  Holds all objects in the scene
  */
 type Scene struct {
-    Vertices []Point
+    Vertices []Vector
     Faces []Face
-    Lights []Point
+    Lights []Vector
     Camera Viewer
 }
 
@@ -43,8 +46,10 @@ func (s *Scene) Build(file string) bool {
             x, _ := strconv.ParseFloat(tokens[1], 64)
             y, _ := strconv.ParseFloat(tokens[2], 64)
             z, _ := strconv.ParseFloat(tokens[3], 64)
-            s.Vertices = append(s.Vertices, Point{x,y,z})
+            fmt.Println(x,y,z)
+            s.Vertices = append(s.Vertices, Vector{x,y,z})
         } else if tokens[0] == "f" {
+            fmt.Println(tokens)
             v1, _ := strconv.Atoi(tokens[1])
             v2, _ := strconv.Atoi(tokens[2])
             v3, _ := strconv.Atoi(tokens[3])
@@ -56,6 +61,38 @@ func (s *Scene) Build(file string) bool {
         fmt.Println("Scanner had an error.", err)
         return false
     }
+
+    return true
+}
+
+func (s Scene) Render(image *image.Gray16, scale int) bool {
+    // for each pixel of the camera
+    for _, ray := range s.Camera.GetRays(scale) {
+    //    fmt.Println(ray)
+        var col uint16 = 0 // default pixel color
+
+        // for getting closest face
+        // var minFace Face
+        var minDist float64 = math.MaxFloat64
+
+        // get closest intersecting face
+        for _, face := range s.Faces {
+            _, dist, err := face.GetIntersection(ray)
+
+            if !err && dist < minDist {
+                // minFace = face
+                minDist = dist
+            }
+        }
+
+        // was intersection? render!
+        if minDist < math.MaxFloat64 {
+            col = 65535
+            image.SetGray16(ray.X, ray.Y, color.Gray16{col})
+        }
+
+    }
+
 
     return true
 }

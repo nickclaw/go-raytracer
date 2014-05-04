@@ -1,6 +1,7 @@
 package raytrace
 
 type Ray struct {
-    Loc Point
+    X, Y int
+    Loc Vector
     Dir Vector
 }
