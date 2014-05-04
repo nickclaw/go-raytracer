@@ -10,7 +10,7 @@ func (r Face) GetNormal() Vector {
 func (r Face) GetIntersection(l Ray) (Point, float64, bool){
     e1 := BuildVector(r[1], r[0]) // triangle edge 1
     e2 := BuildVector(r[2], r[0]) // triangle edge 2
-    h := l.Vector.Cross(e2)
+    h := l.Dir.Cross(e2)
     a := e1.Dot(h)
 
     if a == 0.0 {
@@ -18,7 +18,7 @@ func (r Face) GetIntersection(l Ray) (Point, float64, bool){
     }
 
     f := 1 / a
-    s := BuildVector(l.Point, r[0])
+    s := BuildVector(l.Loc, r[0])
     u := f * s.Dot(h)
 
     if u < 0.0 || u > 1.0 {
@@ -26,7 +26,7 @@ func (r Face) GetIntersection(l Ray) (Point, float64, bool){
     }
 
     q := s.Cross(e1)
-    v := f * l.Vector.Dot(q)
+    v := f * l.Dir.Dot(q)
 
     if v < 0.0 || u + v > 1.0 {
         return Point{}, 0.0, true
@@ -35,7 +35,7 @@ func (r Face) GetIntersection(l Ray) (Point, float64, bool){
     t := f * e2.Dot(q)
 
     if (t > 0) {
-        return Point{l.Point[0] + t * l.Vector[0], l.Point[1] + t * l.Vector[1], l.Point[2] + t * l.Vector[2]}, t, false
+        return Point{l.Loc[0] + t * l.Dir[0], l.Loc[1] + t * l.Dir[1], l.Loc[2] + t * l.Dir[2]}, t, false
     } else {
         return Point{}, t, true
     }
