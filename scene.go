@@ -72,24 +72,36 @@ func (s Scene) Render(image *image.Gray16, scale int) bool {
         var col uint16 = 0 // default pixel color
 
         // for getting closest face
-        // var minFace Face
+        var minFace Face
         var minDist float64 = math.MaxFloat64
+        var minPt Vector
 
         // get closest intersecting face
         for _, face := range s.Faces {
-            _, dist, err := face.GetIntersection(ray)
+            pt, dist, err := face.GetIntersection(ray)
 
             if !err && dist < minDist {
-                // minFace = face
+                minFace = face
                 minDist = dist
+                minPt = pt
             }
         }
 
-        // was intersection? render!
-        if minDist < math.MaxFloat64 {
-            col = 65535 - uint16(65535 * minDist / 1.8)
-            image.SetGray16(ray.X, ray.Y, color.Gray16{col})
+        // if no intersectino skip
+        if minDist == math.MaxFloat64 {
+            continue
         }
+
+        // was intersection? calculate light!
+        for _, light := range s.Lights {
+            N := minFace.GetNormal()
+            d := minPt.Sub(light)
+            if N.Dot(d) > 0.0 {
+                col += uint16(N.Dot(d) * 1000.0)
+            }
+        }
+
+        image.SetGray16(ray.X, ray.Y, color.Gray16{col})
 
     }
 

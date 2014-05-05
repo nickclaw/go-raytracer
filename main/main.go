@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-    width, height, scale := 3, 3, 100
+    width, height, scale := 3, 3, 400
     image := image.NewGray16(image.Rect(0,0,width*scale, height*scale))
 
     scene := raytrace.Scene{
@@ -18,6 +18,10 @@ func main() {
             Dir: raytrace.Vector{-1,0,0},
             Width: width,
             Height: height,
+        },
+        Lights: []raytrace.Vector{
+            raytrace.Vector{-10,2,1},
+            raytrace.Vector{-10,-5, -3},
         },
     }
     scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/both.obj")
