@@ -7,6 +7,7 @@ func (r Face) GetNormal() Vector {
 }
 
 // based off http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+// unculled... because culled didn't work AT ALL
 func (r Face) GetIntersection(l Ray) (Vector, float64, bool) {
     e1 := r[1].Sub(r[0])
     e2 := r[2].Sub(r[0])
@@ -15,26 +16,28 @@ func (r Face) GetIntersection(l Ray) (Vector, float64, bool) {
 
     det := e1.Dot(pVec)
 
-    if det < 0 {
+    if det > -.000001 && det < .000001 {
         return Vector{}, 0.0, true
     }
+
+    inv_det := 1.0 / det
 
     tVec := l.Loc.Sub(r[0])
-    qVec := tVec.Cross(e1)
-
-    u := tVec.Dot(pVec)
-    v := l.Dir.Dot(qVec)
-    t := e2.Dot(qVec)
-
-    if (u < 0.0 || u > det || v < 0.0 || u + v > det) {
+    u := tVec.Dot(pVec) * inv_det
+    if u < 0.0 || u > 1.0 {
         return Vector{}, 0.0, true
     }
 
-    return Vector{
-        u / det,
-        v / det,
-        t / det,
-    }, 1.0, false
+    qVec := tVec.Cross(e1)
+    v := l.Dir.Dot(qVec) * inv_det
+    if v < 0.0 || u + v > 1.0 {
+        return Vector{}, 0.0, true
+    }
+
+    t := e2.Dot(qVec) * inv_det
+
+
+    return l.Dir.Mult(t).Add(l.Loc), t, false
 }
 
 func BuildVector(a,b Vector) Vector {

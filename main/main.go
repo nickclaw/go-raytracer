@@ -20,7 +20,7 @@ func main() {
             Height: height,
         },
     }
-    scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/monkey.obj")
+    scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/both.obj")
     scene.Render(image, scale)
 
     output, _ := os.Create("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/output.jpg")

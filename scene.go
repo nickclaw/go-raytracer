@@ -46,14 +46,13 @@ func (s *Scene) Build(file string) bool {
             x, _ := strconv.ParseFloat(tokens[3], 64)
             y, _ := strconv.ParseFloat(tokens[1], 64)
             z, _ := strconv.ParseFloat(tokens[2], 64)
-            z *= -1.0
-            fmt.Println(x,y,z)
+            z *= -1
             s.Vertices = append(s.Vertices, Vector{x,y,z})
+            fmt.Println(x,y,z)
         } else if tokens[0] == "f" {
-            fmt.Println(tokens)
-            v1, _ := strconv.Atoi(tokens[1])
+            v1, _ := strconv.Atoi(tokens[3])
             v2, _ := strconv.Atoi(tokens[2])
-            v3, _ := strconv.Atoi(tokens[3])
+            v3, _ := strconv.Atoi(tokens[1])
             s.Faces = append(s.Faces, Face{s.Vertices[v1 + vOffset], s.Vertices[v2 + vOffset], s.Vertices[v3 + vOffset]})
         }
     }
@@ -88,7 +87,7 @@ func (s Scene) Render(image *image.Gray16, scale int) bool {
 
         // was intersection? render!
         if minDist < math.MaxFloat64 {
-            col = 65535 - uint16(65535 * minDist / 2)
+            col = 65535 - uint16(65535 * minDist / 1.8)
             image.SetGray16(ray.X, ray.Y, color.Gray16{col})
         }
 
