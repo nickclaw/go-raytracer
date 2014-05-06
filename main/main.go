@@ -20,8 +20,8 @@ func main() {
             Height: height,
         },
         Lights: []raytrace.Vector{
-            raytrace.Vector{-10,2,1},
-            raytrace.Vector{-10,-5, -3},
+            raytrace.Vector{5,5,0},
+            //raytrace.Vector{10,-5, -3},
         },
     }
     scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/both.obj")

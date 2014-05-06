@@ -96,8 +96,9 @@ func (s Scene) Render(image *image.Gray16, scale int) bool {
         for _, light := range s.Lights {
             N := minFace.GetNormal()
             d := minPt.Sub(light)
-            if N.Dot(d) > 0.0 {
-                col += uint16(N.Dot(d) * 1000.0)
+
+            if N.Dot(d) < 0.0 {
+                col += uint16(-N.Dot(d) * 10000.0)
             }
         }
 
