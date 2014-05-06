@@ -2,58 +2,52 @@ package raytrace
 
 import (
     "fmt"
+    "bufio"
     "strings"
     "strconv"
     "os"
-    "bufio"
     "image"
     "image/color"
     "math"
 )
 
-/**
- *  Holds all objects in the scene
- */
 type Scene struct {
-    Vertices []Vector
     Faces []Face
-    Lights []Vector
-    Camera Viewer
+    Lights []Light
 }
 
 /**
  * Reads a .obj file into the scene
- * Can be called multiple times to read in multiple .obj files
- * @param {string} file
- * @return {bool} true if successful
+ * @param {string} filename
+ * @return {bool} success
  */
-func (s *Scene) Build(file string) bool {
-    vOffset := len(s.Vertices) - 1
+func (s *Scene) ReadFile(filename string) bool {
+    var vertices []Point
 
-    // try to open file
-    f, err := os.Open(file)
+    f, err := os.Open(filename)
     if err != nil {
-        fmt.Println("File " + file + " could not be opened.", err)
+        fmt.Println("File " + filename + " could not be found.", err)
         return false
     }
     defer f.Close()
 
-    // scan the file
     scanner := bufio.NewScanner(f)
     for scanner.Scan() {
         tokens := strings.Split(scanner.Text(), " ")
         if tokens[0] == "v" {
-            x, _ := strconv.ParseFloat(tokens[3], 64)
-            y, _ := strconv.ParseFloat(tokens[1], 64)
+            x, _ := strconv.ParseFloat(tokens[1], 64)
+            y, _ := strconv.ParseFloat(tokens[3], 64)
             z, _ := strconv.ParseFloat(tokens[2], 64)
-            z *= -1
-            s.Vertices = append(s.Vertices, Vector{x,y,z})
-            fmt.Println(x,y,z)
+            vertices = append(vertices, NewPoint(x,y,z))
         } else if tokens[0] == "f" {
-            v1, _ := strconv.Atoi(tokens[3])
-            v2, _ := strconv.Atoi(tokens[2])
-            v3, _ := strconv.Atoi(tokens[1])
-            s.Faces = append(s.Faces, Face{s.Vertices[v1 + vOffset], s.Vertices[v2 + vOffset], s.Vertices[v3 + vOffset]})
+            v0, _ := strconv.Atoi(tokens[1])
+            v1, _ := strconv.Atoi(tokens[2])
+            v2, _ := strconv.Atoi(tokens[3])
+            s.Faces = append(s.Faces, NewFace(
+                vertices[v0 - 1],
+                vertices[v1 - 1],
+                vertices[v2 - 1]),
+            )
         }
     }
 
@@ -65,46 +59,85 @@ func (s *Scene) Build(file string) bool {
     return true
 }
 
-func (s Scene) Render(image *image.Gray16, scale int) bool {
-    // for each pixel of the camera
-    for _, ray := range s.Camera.GetRays(scale) {
-    //    fmt.Println(ray)
-        var col uint16 = 0 // default pixel color
+/**
+ * Renders the scene with the camera
+ * @param {Viewer} camera
+ * @param {flaot64} scale
+ * @return {image}
+ */
+func (s Scene) Render(camera Viewer, scale float64) image.Gray16 {
+    image := createImage(camera, scale)
 
-        // for getting closest face
-        var minFace Face
-        var minDist float64 = math.MaxFloat64
-        var minPt Vector
+    for _, ray := range camera.GetRays(scale) {
+        pt, face, _, err := closestFace(ray, s.Faces)
 
-        // get closest intersecting face
-        for _, face := range s.Faces {
-            pt, dist, err := face.GetIntersection(ray)
+        if err {continue}
 
-            if !err && dist < minDist {
-                minFace = face
-                minDist = dist
-                minPt = pt
-            }
-        }
-
-        // if no intersectino skip
-        if minDist == math.MaxFloat64 {
-            continue
-        }
-
-        // was intersection? calculate light!
-        for _, light := range s.Lights {
-            N := minFace.GetNormal()
-            d := minPt.Sub(light)
-            if N.Dot(d) > 0.0 {
-                col += uint16(N.Dot(d) * 1000.0)
-            }
-        }
-
+        col := calculateShading(face, pt, s.Lights)
         image.SetGray16(ray.X, ray.Y, color.Gray16{col})
 
     }
 
+    return image
+}
 
-    return true
+/**
+ * Creates an image with the right dimensions
+ * @private
+ * @param {Viewer} camera
+ * @param {float64} scale
+ * return {image}
+ */
+func createImage(camera Viewer, scale float64) image.Gray16 {
+    x, y := camera.GetDimensions(scale)
+    i := image.NewGray16(image.Rect(0,0,x,y))
+
+    return *i
+}
+
+/**
+ * Finds the closest face intersecting with the ray
+ * @param {*Ray} r
+ * @param {*[]Face} faces
+ * @return {Point}
+ * @return {Face}
+ * @return {float64} distance
+ * @return {bool} err
+ */
+func closestFace(r Ray, faces []Face) (Point, Face, float64, bool) {
+    var minFace Face
+    var minDist float64 = math.MaxFloat64
+    var minPt Point
+
+    for _, face := range faces {
+        pt, dist, err := face.GetIntersection(r)
+
+        if !err && dist < minDist {
+            minFace, minDist, minPt = face, dist, pt
+        }
+    }
+
+    if minDist == math.MaxFloat64 {
+        return Point{}, Face{}, 0.0, true
+    } else {
+        return minPt, minFace, minDist, false
+    }
+}
+
+/**
+ * Calculates the appropriate shading at any point
+ * @param {Face} face
+ * @param {Point} pt
+ * @param {[]Light} lights
+ * @return {uint16}
+ */
+func calculateShading(face Face, pt Point, lights []Light) uint16 {
+    var col uint16 = 0
+    for _, light := range lights {
+        n := face.GetNormal().Dot(pt.VectorTo(light.Loc))
+        if n > 0.0 {
+            col += uint16(n * 10000.0)
+        }
+    }
+    return col
 }

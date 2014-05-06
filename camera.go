@@ -1,36 +1,36 @@
 package raytrace
 
-import "fmt"
-
 // define an interface for all cameras
 type Viewer interface {
-    GetRays(scale int) []Ray
+    GetRays(scale float64) []Ray
+    GetDimensions(scale float64) (int, int)
 }
 
 type OrthoCamera struct {
-    Loc Vector
+    Loc Point
     Dir Vector
-    Width, Height int // actual, not rendered
+    Width, Height float64 // actual, not rendered
 }
 
-func (c OrthoCamera) GetRays(scale int) []Ray {
+/**
+ * Gets the rays from the camera
+ * @param {float64} scale
+ * @return {[]Ray}
+ */
+func (c OrthoCamera) GetRays(scale float64) []Ray {
     rays := []Ray{}
-    xMult, yMult := 1.0 / float64(scale), 1.0 / float64(scale)
-    xOff, yOff := -float64(c.Width) / 2, -float64(c.Height) / 2
+    uOff, vOff := c.Width / 2.0, c.Height / 2.0
+    x, y := c.GetDimensions(scale)
 
-    fmt.Println("mults", xMult, yMult)
-    fmt.Println("offs", xOff, yOff)
-    fmt.Println("uvs", scale * c.Width, scale * c.Height)
-
-    for u := 0; u < scale * c.Width; u++ {
-        for v := 0; v < scale * c.Height; v++ {
+    for u := 0; u < x; u++ {
+        for v := 0; v < y; v++ {
             rays = append(rays, Ray{
-                X : u,
-                Y : v,
-                Loc: Vector{
-                    c.Loc[0] + (float64(u) * xMult + xOff) * c.Dir[1],
-                    c.Loc[1] + (float64(u) * yMult + xOff) * c.Dir[0],
-                    c.Loc[2] + (float64(v) * yMult + yOff),
+                X: u,
+                Y: v,
+                Loc: Point{
+                    c.Loc[0] + (float64(u) / scale - uOff) * c.Dir[1],
+                    c.Loc[1] + (float64(u) / scale - uOff) * c.Dir[0],
+                    c.Loc[2] -(float64(v) / scale - vOff),
                 },
                 Dir: c.Dir,
             })
@@ -38,4 +38,14 @@ func (c OrthoCamera) GetRays(scale int) []Ray {
     }
 
     return rays
+}
+
+/**
+ * Returns the dimensions the camera will render
+ * @param {float64} scale
+ * @return {int} width px
+ * @return {int} height px
+ */
+func (c OrthoCamera) GetDimensions(scale float64) (int, int) {
+    return int(c.Width * scale), int(c.Height * scale)
 }

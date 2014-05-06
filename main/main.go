@@ -2,34 +2,30 @@ package main
 
 import (
     "fmt"
-    "os"
     "github.com/nickclaw/raytrace"
-    "image"
+    "os"
     "image/jpeg"
 )
 
 func main() {
-    width, height, scale := 3, 3, 400
-    image := image.NewGray16(image.Rect(0,0,width*scale, height*scale))
-
     scene := raytrace.Scene{
-        Camera: raytrace.OrthoCamera{
-            Loc: raytrace.Vector{5,0,0},
-            Dir: raytrace.Vector{-1,0,0},
-            Width: width,
-            Height: height,
-        },
-        Lights: []raytrace.Vector{
-            raytrace.Vector{-10,2,1},
-            raytrace.Vector{-10,-5, -3},
+        Lights: []raytrace.Light{
+            raytrace.NewLight(5,0,0,1),
         },
     }
-    scene.Build("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/both.obj")
-    scene.Render(image, scale)
+    camera := raytrace.OrthoCamera{
+        Loc: raytrace.Point{5, 0, 0},
+        Dir: raytrace.Vector{-1, 0, 0},
+        Width: 4,
+        Height: 4,
+    }
+    scene.ReadFile("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/both.obj")
+    image := scene.Render(camera, 400)
 
-    output, _ := os.Create("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/output.jpg")
-    defer output.Close()
+    file, _ := os.Create("/Users/nickclaw/Documents/Go/src/github.com/nickclaw/raytrace/resource/output.jpg")
+    defer file.Close()
 
-    jpeg.Encode(output, image, nil)
+    jpeg.Encode(file, &image, nil)
+
     fmt.Println("Done.")
 }
