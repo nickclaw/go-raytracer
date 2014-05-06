@@ -1,45 +1,54 @@
 package raytrace
 
-type Face [3]Vector
-
-func (r Face) GetNormal() Vector {
-    return BuildVector(r[1], r[0]).Cross(BuildVector(r[2], r[0])).Norm()
+type Face struct{
+    V0, V1, V2 Point
+    EV1, EV2 Vector
 }
 
-// based off http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
-// unculled... because culled didn't work AT ALL
-func (r Face) GetIntersection(l Ray) (Vector, float64, bool) {
-    e1 := r[1].Sub(r[0])
-    e2 := r[2].Sub(r[0])
+/**
+ * @constructor
+ */
+func NewFace(v0,v1,v2) Face {
+    return Face{
+        V0: v0,
+        V1: v1,
+        V2: v2,
+        EV1: v1.VectorTo(v0),
+        EV2: v2.VectorTo(v0),
+    }
+}
 
-    pVec := l.Dir.Cross(e2)
-
-    det := e1.Dot(pVec)
+/**
+ * Finds the intersection between a Face and a Ray
+ * based off of http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast
+ * @param {Ray} r
+ * @return {Point} intersection
+ * @return {float64} distance
+ * @return {bool} was error
+ */
+func (f Face) GetIntersection(r Ray) (Point, float64, bool) {
+    pVec := r.Dir.Cross(f.EV2)
+    det := f.EV2.Dot(pVec)
 
     if det > -.000001 && det < .000001 {
-        return Vector{}, 0.0, true
+        return Point{}, 0.0, true
     }
 
     inv_det := 1.0 / det
+    tVec := r.Loc.Sub(f.V0)
 
-    tVec := l.Loc.Sub(r[0])
     u := tVec.Dot(pVec) * inv_det
     if u < 0.0 || u > 1.0 {
-        return Vector{}, 0.0, true
+        return Point{}, 0.0, true
     }
 
-    qVec := tVec.Cross(e1)
-    v := l.Dir.Dot(qVec) * inv_det
+    qVec := tVec.Cross(f.EV1)
+    v := r.Dir.Dot(qVec)
     if v < 0.0 || u + v > 1.0 {
-        return Vector{}, 0.0, true
+        return Point{}, 0.0, true
     }
 
-    t := e2.Dot(qVec) * inv_det
+    t := f.EV2.Dot(qVec)
 
-
-    return l.Dir.Mult(t).Add(l.Loc), t, false
-}
-
-func BuildVector(a,b Vector) Vector {
-    return Vector{a[0]-b[0], a[1]-b[1], a[2]-b[2]}
+    return r.Move(t), t, false
 }

@@ -43,9 +43,16 @@ func (a Point) Distance(b Point) float64 {
  * Returns the unit vector from one point to another
  * @param {Point} b
  * @return {Vector} unit vector
- * @return {float64} t
  */
-func (a Point) VectorTo(b Point) (Vector, float64) {
-    vec := Vector{a[0] - b[0], a[1] - b[1], a[2] - b[2]}
-    return vec.Norm(), vec.Len()
+func (a Point) UnitVectorTo(b Point) Vector {
+    return a.VectorTo(b).Norm()
+}
+
+/**
+ * Returns the vector from one point to another
+ * @param {Point} b
+ * @return {Vector} vector
+ */
+func (a Point) VectorTo(b Point) Vector {
+    return Vector{a[0] - b[0], a[1] - b[1], a[2] - b[2]}
 }
