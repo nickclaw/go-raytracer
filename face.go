@@ -20,6 +20,10 @@ func NewFace(v0,v1,v2 Point) Face {
     }
 }
 
+func (f Face) GetNormal() Vector {
+    return f.EV1.Cross(f.EV2)
+}
+
 /**
  * Finds the intersection between a Face and a Ray
  * based off of http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast

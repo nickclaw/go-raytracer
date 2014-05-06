@@ -69,11 +69,13 @@ func (s Scene) Render(camera Viewer, scale float64) image.Gray16 {
     image := createImage(camera, scale)
 
     for _, ray := range camera.GetRays(scale) {
-        _, _, _, err := closestFace(ray, s.Faces)
+        pt, face, _, err := closestFace(ray, s.Faces)
 
-        if !err {
-            image.SetGray16(ray.X, ray.Y, color.Gray16{65535})
-        }
+        if err {continue}
+
+        col := calculateShading(face, pt, s.Lights)
+        image.SetGray16(ray.X, ray.Y, color.Gray16{col})
+
     }
 
     return image
@@ -120,4 +122,22 @@ func closestFace(r Ray, faces []Face) (Point, Face, float64, bool) {
     } else {
         return minPt, minFace, minDist, false
     }
+}
+
+/**
+ * Calculates the appropriate shading at any point
+ * @param {Face} face
+ * @param {Point} pt
+ * @param {[]Light} lights
+ * @return {uint16}
+ */
+func calculateShading(face Face, pt Point, lights []Light) uint16 {
+    var col uint16 = 0
+    for _, light := range lights {
+        n := face.GetNormal().Dot(pt.VectorTo(light.Loc))
+        if n > 0.0 {
+            col += uint16(n * 10000.0)
+        }
+    }
+    return col
 }
