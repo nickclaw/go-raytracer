@@ -4,7 +4,8 @@ import "fmt"
 
 // define an interface for all cameras
 type Viewer interface {
-    GetRays(scale int) []Ray
+    GetRays(scale float64) []Ray
+    GetDimensions(scale float64) (float64, float64)
 }
 
 type OrthoCamera struct {
@@ -13,13 +14,18 @@ type OrthoCamera struct {
     Width, Height float64 // actual, not rendered
 }
 
+/**
+ * Gets the rays from the camera
+ * @param {float64} scale
+ * @return {[]Ray}
+ */
 func (c OrthoCamera) GetRays(scale float64) []Ray {
     rays := []Ray{}
+    uOff, vOff := c.Width / 2.0, c.Height / 2.0
+    x, y := c.GetDimensions(scale)
 
-    uOff, vOff := c.Width / 2.0, c.Heigth / 2.0
-
-    for u := 0; u < int(c.Width * scale); u++ {
-        for v := 0; v < int(c.Height * scale); v++ {
+    for u := 0; u < x; u++ {
+        for v := 0; v < y; v++ {
             rays = append(rays, Ray{
                 X: u,
                 Y: v,
@@ -34,4 +40,14 @@ func (c OrthoCamera) GetRays(scale float64) []Ray {
     }
 
     return rays
+}
+
+/**
+ * Returns the dimensions the camera will render
+ * @param {float64} scale
+ * @return {float64} width px
+ * @return {float64} height px
+ */
+func (c OrthoCamera) GetDimensions(scale float64) (float64, float64) {
+    return int(c.Width * scale), int(c.Height * scale)
 }

@@ -50,6 +50,7 @@ func (a Point) UnitVectorTo(b Point) Vector {
 
 /**
  * Returns the vector from one point to another
+ * equivalent to Vector.Sub
  * @param {Point} b
  * @return {Vector} vector
  */
