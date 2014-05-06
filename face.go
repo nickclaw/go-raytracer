@@ -1,5 +1,7 @@
 package raytrace
 
+/*import "fmt"*/
+
 type Face struct{
     V0, V1, V2 Point
     EV1, EV2 Vector
@@ -28,7 +30,7 @@ func NewFace(v0,v1,v2 Point) Face {
  */
 func (f Face) GetIntersection(r Ray) (Point, float64, bool) {
     pVec := r.Dir.Cross(f.EV2)
-    det := f.EV2.Dot(pVec)
+    det := f.EV1.Dot(pVec)
 
     if det > -.000001 && det < .000001 {
         return Point{}, 0.0, true
@@ -43,12 +45,12 @@ func (f Face) GetIntersection(r Ray) (Point, float64, bool) {
     }
 
     qVec := tVec.Cross(f.EV1)
-    v := r.Dir.Dot(qVec)
+    v := r.Dir.Dot(qVec) * inv_det
     if v < 0.0 || u + v > 1.0 {
         return Point{}, 0.0, true
     }
 
-    t := f.EV2.Dot(qVec)
+    t := f.EV2.Dot(qVec) * inv_det
 
     return r.Move(t), t, false
 }

@@ -1,11 +1,9 @@
 package raytrace
 
-import "fmt"
-
 // define an interface for all cameras
 type Viewer interface {
     GetRays(scale float64) []Ray
-    GetDimensions(scale float64) (float64, float64)
+    GetDimensions(scale float64) (int, int)
 }
 
 type OrthoCamera struct {
@@ -32,7 +30,7 @@ func (c OrthoCamera) GetRays(scale float64) []Ray {
                 Loc: Point{
                     c.Loc[0] + (float64(u) / scale - uOff) * c.Dir[1],
                     c.Loc[1] + (float64(u) / scale - uOff) * c.Dir[0],
-                    c.Loc[2] + (float64(v) / scale + vOff),
+                    c.Loc[2] -(float64(v) / scale - vOff),
                 },
                 Dir: c.Dir,
             })
@@ -45,9 +43,9 @@ func (c OrthoCamera) GetRays(scale float64) []Ray {
 /**
  * Returns the dimensions the camera will render
  * @param {float64} scale
- * @return {float64} width px
- * @return {float64} height px
+ * @return {int} width px
+ * @return {int} height px
  */
-func (c OrthoCamera) GetDimensions(scale float64) (float64, float64) {
+func (c OrthoCamera) GetDimensions(scale float64) (int, int) {
     return int(c.Width * scale), int(c.Height * scale)
 }
