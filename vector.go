@@ -7,7 +7,7 @@ type Vector [3]float64
 /**
  * @constructor
  */
-func NewVector(a,b,c float64) {
+func NewVector(a,b,c float64) Vector {
     return Vector{a,b,c}
 }
 
@@ -18,7 +18,7 @@ func NewVector(a,b,c float64) {
  * @param {float64}
  */
 func (a Vector) Length() float64 {
-    return math.sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+    return math.Sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
 }
 
 /**

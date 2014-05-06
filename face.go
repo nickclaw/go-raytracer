@@ -8,7 +8,7 @@ type Face struct{
 /**
  * @constructor
  */
-func NewFace(v0,v1,v2) Face {
+func NewFace(v0,v1,v2 Point) Face {
     return Face{
         V0: v0,
         V1: v1,
@@ -35,7 +35,7 @@ func (f Face) GetIntersection(r Ray) (Point, float64, bool) {
     }
 
     inv_det := 1.0 / det
-    tVec := r.Loc.Sub(f.V0)
+    tVec := r.Loc.VectorTo(f.V0)
 
     u := tVec.Dot(pVec) * inv_det
     if u < 0.0 || u > 1.0 {

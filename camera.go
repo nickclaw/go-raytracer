@@ -8,7 +8,7 @@ type Viewer interface {
 }
 
 type OrthoCamera struct {
-    Loc Vector
+    Loc Point
     Dir Vector
     Width, Height int // actual, not rendered
 }
@@ -27,7 +27,7 @@ func (c OrthoCamera) GetRays(scale int) []Ray {
             rays = append(rays, Ray{
                 X : u,
                 Y : v,
-                Loc: Vector{
+                Loc: Point{
                     c.Loc[0] + (float64(u) * xMult + xOff) * c.Dir[1],
                     c.Loc[1] + (float64(u) * yMult + xOff) * c.Dir[0],
                     c.Loc[2] + (float64(v) * yMult + yOff),

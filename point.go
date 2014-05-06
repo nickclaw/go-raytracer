@@ -1,4 +1,4 @@
-package main
+package raytrace
 
 import "math"
 
@@ -7,7 +7,7 @@ type Point [3]float64
 /**
  * @constructor
  */
-func NewPoint(a,b,c) Point {
+func NewPoint(a,b,c float64) Point {
     return Point{a,b,c}
 }
 

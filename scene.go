@@ -2,60 +2,53 @@ package raytrace
 
 import (
     "fmt"
+    "bufio"
     "strings"
     "strconv"
     "os"
-    "bufio"
-    "image"
-    "image/color"
-    "math"
 )
 
-/**
- *  Holds all objects in the scene
- */
 type Scene struct {
-    Vertices []Vector
     Faces []Face
-    Lights []Vector
-    Camera Viewer
+    Lights []Light
 }
 
 /**
  * Reads a .obj file into the scene
- * Can be called multiple times to read in multiple .obj files
- * @param {string} file
- * @return {bool} true if successful
+ * @param {string} filename
+ * @return {bool} success
  */
-func (s *Scene) Build(file string) bool {
-    vOffset := len(s.Vertices) - 1
+func (s Scene) ReadFile(filename string) bool {
+    var vertices []Point
 
-    // try to open file
-    f, err := os.Open(file)
+    f, err := os.Open(filename)
     if err != nil {
-        fmt.Println("File " + file + " could not be opened.", err)
+        fmt.Println("File " + filename + " could not be found.", err)
         return false
     }
     defer f.Close()
 
-    // scan the file
     scanner := bufio.NewScanner(f)
     for scanner.Scan() {
         tokens := strings.Split(scanner.Text(), " ")
         if tokens[0] == "v" {
-            x, _ := strconv.ParseFloat(tokens[3], 64)
-            y, _ := strconv.ParseFloat(tokens[1], 64)
+            x, _ := strconv.ParseFloat(tokens[1], 64)
+            y, _ := strconv.ParseFloat(tokens[3], 64)
             z, _ := strconv.ParseFloat(tokens[2], 64)
-            z *= -1
-            s.Vertices = append(s.Vertices, Vector{x,y,z})
-            fmt.Println(x,y,z)
+            vertices = append(vertices, NewPoint(x,y,z))
         } else if tokens[0] == "f" {
-            v1, _ := strconv.Atoi(tokens[3])
-            v2, _ := strconv.Atoi(tokens[2])
-            v3, _ := strconv.Atoi(tokens[1])
-            s.Faces = append(s.Faces, Face{s.Vertices[v1 + vOffset], s.Vertices[v2 + vOffset], s.Vertices[v3 + vOffset]})
+            v0, _ := strconv.Atoi(tokens[1])
+            v1, _ := strconv.Atoi(tokens[2])
+            v2, _ := strconv.Atoi(tokens[3])
+            s.Faces = append(s.Faces, NewFace(
+                vertices[v0 - 1],
+                vertices[v1 - 1],
+                vertices[v2 - 1]),
+            )
         }
     }
+
+    fmt.Println(vertices)
 
     if err := scanner.Err(); err != nil {
         fmt.Println("Scanner had an error.", err)
@@ -65,47 +58,6 @@ func (s *Scene) Build(file string) bool {
     return true
 }
 
-func (s Scene) Render(image *image.Gray16, scale int) bool {
-    // for each pixel of the camera
-    for _, ray := range s.Camera.GetRays(scale) {
-    //    fmt.Println(ray)
-        var col uint16 = 0 // default pixel color
-
-        // for getting closest face
-        var minFace Face
-        var minDist float64 = math.MaxFloat64
-        var minPt Vector
-
-        // get closest intersecting face
-        for _, face := range s.Faces {
-            pt, dist, err := face.GetIntersection(ray)
-
-            if !err && dist < minDist {
-                minFace = face
-                minDist = dist
-                minPt = pt
-            }
-        }
-
-        // if no intersectino skip
-        if minDist == math.MaxFloat64 {
-            continue
-        }
-
-        // was intersection? calculate light!
-        for _, light := range s.Lights {
-            N := minFace.GetNormal()
-            d := minPt.Sub(light)
-
-            if N.Dot(d) < 0.0 {
-                col += uint16(-N.Dot(d) * 10000.0)
-            }
-        }
-
-        image.SetGray16(ray.X, ray.Y, color.Gray16{col})
-
-    }
-
-
+func (s Scene) Render() bool {
     return true
 }

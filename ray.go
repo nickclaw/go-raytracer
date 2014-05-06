@@ -12,9 +12,9 @@ type Ray struct {
 func NewRay(x int, y int, loc Point, dir Vector) Ray {
     return Ray{
         X: x,
-        Y: y
+        Y: y,
         Loc: loc,
-        Dir: dir.Norm()
+        Dir: dir.Norm(),
     }
 }
 
